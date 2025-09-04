@@ -279,10 +279,10 @@ async def test_project_and_report_crud_with_process(session, test_users, process
     # 2. Create a project linked to the process
     project_repo = ProjectRepository(session)
     project = await project_repo.create(
-        name="Test Project", description="A project linked to a process"
+        name="Test Project",
+        description="A project linked to a process",
+        process_id=process.id,
     )
-    # Link the project to the process
-    project.process_id = process.id
     await session.commit()
     assert project.id is not None
     assert project.process_id == process.id
