@@ -1,6 +1,8 @@
 from __future__ import annotations
 from app.schemas.common import ORMModel
 from app.schemas.report import ReportOut
+from app.schemas.metric import MetricValueOut
+from pydantic import Field
 
 
 class ProjectCreate(ORMModel):
@@ -20,5 +22,6 @@ class ProjectOut(ORMModel):
     process_id: int | None
 
 
-class ProjectWithReports(ProjectOut):
-    reports: list[ReportOut] = []
+class ProjectDetail(ProjectOut):
+    reports: list[ReportOut] = Field(default_factory=list)
+    metrics: list[MetricValueOut] = Field(default_factory=list)
