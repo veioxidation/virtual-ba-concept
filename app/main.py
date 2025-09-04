@@ -1,18 +1,19 @@
 from __future__ import annotations
+
 from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+
+from app.api.v1 import processes as processes_router
+from app.api.v1 import projects as projects_router
+from app.api.v1 import users as users_router
 from app.core.config import settings
 from app.core.log import setup_logging
-from app.db.session import lifespan_db, engine
 from app.db.base import Base
-from app.api.v1 import projects as projects_router
-from app.api.v1 import workflows as workflows_router
-from app.workflows.graph import build_graph
+from app.db.session import engine, lifespan_db
 from app.workflows.checkpointer import build_checkpointer
-
-# Import all models to ensure they're registered with Base.metadata
-from app.models import project, process, user, access, metrics
+from app.workflows.graph import build_graph
 
 
 @asynccontextmanager
@@ -23,7 +24,7 @@ async def lifespan(app: FastAPI):
         # 2) create database tables if they don't exist
         async with engine.begin() as conn:
             await conn.run_sync(Base.metadata.create_all)
-        
+
         # 3) compile graph with a real checkpointer
         builder = build_graph()
         checkpointer = await build_checkpointer()
@@ -36,7 +37,7 @@ async def lifespan(app: FastAPI):
             if setup_coro:
                 await setup_coro()
             else:
-                checkpointer.setup() # type: ignore
+                checkpointer.setup()  # type: ignore
         except Exception:
             # Often safe to ignore if tables already exist
             pass
@@ -60,4 +61,6 @@ app.add_middleware(
 
 # Routers
 app.include_router(projects_router.router, prefix=settings.api_v1_prefix)
-app.include_router(workflows_router.router, prefix=settings.api_v1_prefix)
+# app.include_router(workflows_router.router, prefix=settings.api_v1_prefix)
+app.include_router(processes_router.router, prefix=settings.api_v1_prefix)
+app.include_router(users_router.router, prefix=settings.api_v1_prefix)
