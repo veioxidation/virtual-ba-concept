@@ -15,3 +15,5 @@ dependencies = [
 
 [tool.uv]
 # optional: configure settings here
+[tool.pytest.ini_options]
+asyncio_mode = "auto"

@@ -54,6 +54,7 @@ def process_repo(session):
 class TestProcessRepository:
     """Test cases for ProcessRepository."""
 
+    @pytest.mark.asyncio
     async def test_create_process(self, process_repo, session, test_users):
         """Test creating a new process."""
         user1 = test_users[0]
@@ -77,6 +78,7 @@ class TestProcessRepository:
         assert process.created_at is not None
         assert process.updated_at is not None
 
+    @pytest.mark.asyncio
     async def test_get_process(self, process_repo, session):
         """Test retrieving a process by ID."""
         # Create a process first
@@ -93,11 +95,13 @@ class TestProcessRepository:
         assert retrieved_process.name == "Test Process"
         assert retrieved_process.description == "A test process"
 
+    @pytest.mark.asyncio
     async def test_get_nonexistent_process(self, process_repo, session):
         """Test retrieving a non-existent process."""
         process = await process_repo.get(999)
         assert process is None
 
+    @pytest.mark.asyncio
     async def test_get_by_mod_guid(self, process_repo, session):
         """Test retrieving a process by mod_guid."""
         # Create a process with a specific GUID
@@ -115,11 +119,13 @@ class TestProcessRepository:
         assert retrieved_process.id == created_process.id
         assert retrieved_process.mod_guid == "unique-guid-456"
 
+    @pytest.mark.asyncio
     async def test_get_by_nonexistent_mod_guid(self, process_repo, session):
         """Test retrieving a process by non-existent mod_guid."""
         process = await process_repo.get_by_mod_guid("nonexistent-guid")
         assert process is None
 
+    @pytest.mark.asyncio
     async def test_update_process(self, process_repo, session):
         """Test updating a process."""
         # Create a process
@@ -146,6 +152,7 @@ class TestProcessRepository:
         assert process.description == "Original description"
         assert process.is_public is False
 
+    @pytest.mark.asyncio
     async def test_update_process_partial(self, process_repo, session):
         """Test updating only some fields of a process."""
         # Create a process
@@ -162,11 +169,13 @@ class TestProcessRepository:
         assert updated_process.description == "Original description"  # Unchanged
         assert updated_process.is_public is False  # Unchanged
 
+    @pytest.mark.asyncio
     async def test_update_nonexistent_process(self, process_repo, session):
         """Test updating a non-existent process."""
         updated_process = await process_repo.update(999, name="Updated Name")
         assert updated_process is None
 
+    @pytest.mark.asyncio
     async def test_delete_process(self, process_repo, session):
         """Test deleting a process."""
         # Create a process
@@ -186,6 +195,7 @@ class TestProcessRepository:
         deleted_process = await process_repo.get(process_id)
         assert deleted_process is None
 
+    @pytest.mark.asyncio
     async def test_list_processes(self, process_repo, session):
         """Test listing processes with pagination."""
         # Create multiple processes
@@ -204,6 +214,7 @@ class TestProcessRepository:
         processes_page2 = await process_repo.list(offset=2, limit=2)
         assert len(processes_page2) == 1
 
+    @pytest.mark.asyncio
     async def test_list_public_processes(self, process_repo, session):
         """Test listing only public processes."""
         # Create public and private processes
@@ -220,6 +231,7 @@ class TestProcessRepository:
         for process in public_processes:
             assert process.is_public is True
 
+    @pytest.mark.asyncio
     async def test_list_by_owner(self, process_repo, session, test_users):
         """Test listing processes by owner."""
         user1, user2 = test_users
@@ -244,9 +256,101 @@ class TestProcessRepository:
         assert user2_processes[0].owner_id == user2.id
 
 
+from app.repositories.project import ProjectRepository
+from app.repositories.report import ReportRepository
+
+
+@pytest.mark.asyncio
+async def test_project_and_report_crud_with_process(session, test_users, process_repo):
+    """Test CRUD operations for Project linked to a Process, and Report linked to Project."""
+    user = test_users[0]
+
+    # 1. Create a process
+    process = await process_repo.create(
+        name="Process for Project",
+        description="Process description",
+        mod_guid="proc-guid-1",
+        owner_id=user.id,
+        is_public=True,
+    )
+    await session.commit()
+    assert process.id is not None
+
+    # 2. Create a project linked to the process
+    project_repo = ProjectRepository(session)
+    project = await project_repo.create(
+        name="Test Project", description="A project linked to a process"
+    )
+    # Link the project to the process
+    project.process_id = process.id
+    await session.commit()
+    assert project.id is not None
+    assert project.process_id == process.id
+
+    # 3. Retrieve the project and check linkage
+    retrieved = await project_repo.get(project.id)
+    assert retrieved is not None
+    assert retrieved.name == "Test Project"
+    assert retrieved.process_id == process.id
+
+    # 4. Update the project
+    updated = await project_repo.update(
+        project.id, name="Updated Project Name", description="Updated description"
+    )
+    await session.commit()
+    assert updated is not None
+    assert updated.name == "Updated Project Name"
+    assert updated.description == "Updated description"
+
+    # 5. Add a report to the project
+    report_repo = ReportRepository(session)
+    report = await report_repo.create(
+        project_id=project.id,
+        title="Initial Report",
+        sections={"overview": {"text": "Initial overview section"}},
+        created_by_id=user.id,
+        thread_id="thread-123",
+    )
+    await session.commit()
+    assert report.id is not None
+    assert report.project_id == project.id
+    assert report.title == "Initial Report"
+    assert report.sections["overview"]["text"] == "Initial overview section"
+
+    # 6. Retrieve the report
+    retrieved_report = await report_repo.get(report.id)
+    assert retrieved_report is not None
+    assert retrieved_report.title == "Initial Report"
+    assert retrieved_report.project_id == project.id
+
+    # 7. Update the report
+    updated_report = await report_repo.update(
+        report.id,
+        title="Updated Report Title",
+        sections={"overview": {"text": "Updated overview"}},
+    )
+    await session.commit()
+    assert updated_report is not None
+    assert updated_report.title == "Updated Report Title"
+    assert updated_report.sections["overview"]["text"] == "Updated overview"
+
+    # 8. Delete the report
+    await report_repo.delete(report.id)
+    await session.commit()
+    deleted_report = await report_repo.get(report.id)
+    assert deleted_report is None
+
+    # 9. Delete the project
+    await project_repo.delete(project.id)
+    await session.commit()
+    deleted = await project_repo.get(project.id)
+    assert deleted is None
+
+
 # Run tests
 if __name__ == "__main__":
     # Simple test runner for manual testing
+    @pytest.mark.asyncio
     async def run_tests():
         """Run tests manually."""
         from app.db.session import engine
@@ -298,12 +402,19 @@ if __name__ == "__main__":
             user_processes = await repo.list_by_owner(user1.id)
             print(f"   ✅ Listed {len(user_processes)} processes for user {user1.gpn}")
 
+            # Test project and report crud with process
+            print("6. Testing project and report crud with process...")
+            await test_project_and_report_crud_with_process(
+                session, [user1, user2], repo
+            )
+
             # Test delete
-            print("6. Testing delete...")
+            print("7. Testing delete...")
             await repo.delete(process.id)
             deleted = await repo.get(process.id)
             print(f"   ✅ Deleted process: {deleted is None}")
 
+            # await session.commit()
             print("🎉 All tests passed!")
 
     asyncio.run(run_tests())
