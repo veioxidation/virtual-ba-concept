@@ -1,0 +1,99 @@
++-----------------+        +----------------------+        +---------------------+
+| React Frontend  | <----> | Azure App Service     | <----> | FastAPI Backend     |
+| (Vite + Tailwind)        | (Hosting Frontend)    |        | (Python REST APIs)  |
++-----------------+        +----------------------+        +---------------------+
+                                                          |  BPMN Parser Module |
+                                                          |  Risk Metrics Engine|
+                                                          |  LangChain Agents   |
+                                                          +---------------------+
+                                                                      |
+                                                            +----------------------+
+                                                            | Azure OpenAI Service |
+                                                            +----------------------+
+                                                                      |
+                                                   +------------------+-------------------+
+                                                   |                                    |
+                                +-------------------------+          +------------------------+
+                                | Azure Cosmos DB / SQL DB|          | Azure Cognitive Search |
+                                | (Process metadata &     |          | (SOPs, BCP, Logs, etc.)|
+                                | risk scoring history)   |          +------------------------+
+                                +-------------------------+
+
+🔧 1. Python Backend (FastAPI)
+Recommended Azure Resource:
+Azure App Service (Linux) or Azure Container Apps if containerized
+
+Use Managed Identity to avoid credential injection
+
+Key Modules:
+bpmn-python, networkx, pm4py for metrics
+
+LangChain for agent orchestration
+
+Azure OpenAI for insights
+
+Pydantic for data validation
+
+Celery + Azure Service Bus / Storage Queue for async risk report generation
+
+
+🔨 2. Tools (Functions/Nodes)
+Each tool can be a LangChain Tool or Node in LangGraph.
+
+🛠️ Tool 1: query_process_qa()
+Purpose: Answer user-specific question about the process
+
+Input: natural language question
+
+Backend: Uses RetrievalQA on indexed process_report + step-level notes
+
+🛠️ Tool 2: fill_knowledge_gap()
+Purpose: Update the agent’s understanding based on user response to open questions in report
+
+Input: user input + identified missing questions
+
+Effect: Updates state JSON of the process
+
+🛠️ Tool 3: calculate_metrics()
+Purpose: Structural analysis
+
+Implementation: Python function that analyzes parsed BPMN
+
+Example metrics:
+
+Task count, manual/automated ratio
+
+Gateway density
+
+Loop detection
+
+Critical path length
+
+🛠️ Tool 4: generate_advisory()
+Purpose: Uses LLM to propose improvements
+
+Prompts: Use structured prompt templates based on known pain points:
+
+Manual steps → automation
+
+Excessive loops → rework
+
+Missing ownership → control risks
+
+[User Input] ──▶ [Router Node]
+                 ├─▶ QueryProcessQA
+                 ├─▶ FillKnowledgeGap
+                 ├─▶ CalculateMetrics
+                 └─▶ GenerateAdvisory
+                            ↓
+                    [State Updater]
+                            ↓
+                     [LLM Output]
+LangGraph state should hold:
+
+- process_report
+- bpmn_graph_json
+- knowledge_fills
+- metrics_result
+- conversation_history
+
