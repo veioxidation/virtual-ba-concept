@@ -2,12 +2,12 @@ from __future__ import annotations
 import asyncio, json
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sse_starlette import EventSourceResponse
+
 from app.workflows.graph import build_graph
-from app.workflows.checkpointers import build_checkpointer
+from app.workflows.checkpointer import build_checkpointer
 
 
 router = APIRouter(prefix="/workflows", tags=["workflows"])
-
 
 # Graph compiled at startup in lifespan and stored on app.state
 

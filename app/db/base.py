@@ -2,6 +2,7 @@ from __future__ import annotations
 from sqlalchemy.orm import DeclarativeBase, declared_attr
 from sqlalchemy import MetaData
 
+from app.core.config import settings
 
 convention = {
     "ix": "ix_%(column_0_label)s",
@@ -10,7 +11,8 @@ convention = {
     "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
     "pk": "pk_%(table_name)s",
 }
-metadata_obj = MetaData(naming_convention=convention)
+metadata_obj = MetaData(naming_convention=convention,
+                        schema=settings.schema)
 
 
 class Base(DeclarativeBase):

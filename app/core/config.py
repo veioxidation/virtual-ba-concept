@@ -10,8 +10,8 @@ class Settings(BaseSettings):
 
 
     # Database (application data)
-    database_url: str = "postgresql+asyncpg://user:pass@localhost:5432/appdb"
-
+    database_url: str = "postgresql+asyncpg://automation:automation123@localhost:5434/postgres"
+    schema: str = "goptic"
 
     # LangGraph checkpointer DB (can reuse application DB)
     langgraph_db_url: str | None = None # e.g., "postgresql://user:pass@localhost:5432/appdb"
@@ -24,7 +24,8 @@ class Settings(BaseSettings):
 
 
     class Config:
-        env_file = ".env"   
+        env_file = ".env"
+        extra = "ignore"  # Ignore extra fields instead of raising an error   
 
 
 settings = Settings()

@@ -25,7 +25,11 @@ class ProjectService:
 
 
     async def update(self, project_id: int, **kwargs) -> Project | None:
-        obj = await self.repo.update(project_id, **kwargs)
+        obj = await self.repo.update(
+            project_id, 
+            name=kwargs.get('name'), 
+            description=kwargs.get('description')
+        )
         await self.session.commit()
         return obj
 

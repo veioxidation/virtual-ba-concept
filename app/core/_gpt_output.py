@@ -182,7 +182,7 @@ class Project(Base):
 class Report(Base):
     id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)
     project_id: Mapped[int] = mapped_column(ForeignKey("project.id", ondelete="CASCADE"), index=True)
-    process_version_id: Mapped[int | None] = mapped_column(ForeignKey("processversion.id", ondelete="SET NULL"), index=True)
+    # process_version_id: Mapped[int | None] = mapped_column(ForeignKey("processversion.id", ondelete="SET NULL"), index=True)
 
     title: Mapped[str] = mapped_column(String(200))
     # Free-form sections payload produced by the Virtual BA (e.g. overview, issues, questions, improvements)
@@ -192,11 +192,11 @@ class Report(Base):
     created_at: Mapped["DateTime"] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     # Optional linkage to a LangGraph run/thread for provenance
-    thread_id: Mapped[str | None] = mapped_column(String(100))
-    run_id: Mapped[int | None] = mapped_column(ForeignKey("workflowrun.id", ondelete="SET NULL"))
+    # thread_id: Mapped[str | None] = mapped_column(String(100))
+    # run_id: Mapped[int | None] = mapped_column(ForeignKey("workflowrun.id", ondelete="SET NULL"))
 
     project: Mapped["Project"] = relationship(back_populates="reports")
-    process_version: Mapped["ProcessVersion" | None] = relationship(back_populates="reports")
+    # process_version: Mapped["ProcessVersion" | None] = relationship(back_populates="reports")
 
 # ============================= app/schemas/common.py =========================
 from __future__ import annotations
@@ -508,7 +508,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.core.logging import setup_logging
+from app.core.log import setup_logging
 from app.db.session import lifespan_db
 from app.api.v1 import projects as projects_router
 from app.api.v1 import workflows as workflows_router
