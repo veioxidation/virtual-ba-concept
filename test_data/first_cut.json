@@ -1,0 +1,163 @@
+{
+    "process_name": "CRS Messaging – First-Cut Evaluation",
+    "process_description": "Daily first-cut evaluation of inbound exception-candidate messages for Compliance & Risk Screening (CRS). The goal is to triage messages, flag obvious high-risk signals, and route items for expedited compliance review while documenting an auditable trail.",
+    "steps": [
+      {
+        "name": "Start of the control",
+        "type": "Timer start event",
+        "lane": "CRS System",
+        "fte": null,
+        "total_score": null,
+        "avg_processing_time": "None",
+        "annual_frequency": 260,
+        "description": "Triggered every business day at 08:00 local time.",
+        "previous_steps": [],
+        "next_steps": ["01 Pull message batch"]
+      },
+      {
+        "name": "01 Pull message batch",
+        "type": "User task",
+        "lane": "CRS Screening Tool",
+        "fte": 0.0006,
+        "total_score": 3,
+        "avg_processing_time": "5m",
+        "annual_frequency": 260,
+        "description": "Load messages received since last control window from input queues and archived lists.",
+        "previous_steps": ["Start of the control"],
+        "next_steps": ["02 Fan-out by region"]
+      },
+      {
+        "name": "02 Fan-out by region",
+        "type": "Parallel gateway",
+        "lane": "CRS Screening Tool",
+        "fte": null,
+        "total_score": null,
+        "avg_processing_time": "None",
+        "annual_frequency": 260,
+        "description": "Split processing into regional swim-lanes.",
+        "previous_steps": ["01 Pull message batch"],
+        "next_steps": ["03 EU first-cut screen", "04 US first-cut screen"]
+      },
+      {
+        "name": "03 EU first-cut screen",
+        "type": "User task",
+        "lane": "CRS Screening Team – EU",
+        "fte": 0.0012,
+        "total_score": 5,
+        "avg_processing_time": "12m",
+        "annual_frequency": 260,
+        "description": "Apply rule deck v1: sanctions keywords, restricted counterparties, and known bypass patterns.",
+        "previous_steps": ["02 Fan-out by region"],
+        "next_steps": ["05 Join screened results"]
+      },
+      {
+        "name": "04 US first-cut screen",
+        "type": "User task",
+        "lane": "CRS Screening Team – US",
+        "fte": 0.0011,
+        "total_score": 5,
+        "avg_processing_time": "11m",
+        "annual_frequency": 260,
+        "description": "Apply rule deck v1 and US-specific lists; mark obvious false-positives.",
+        "previous_steps": ["02 Fan-out by region"],
+        "next_steps": ["05 Join screened results"]
+      },
+      {
+        "name": "05 Join screened results",
+        "type": "Parallel gateway",
+        "lane": "CRS Screening Tool",
+        "fte": null,
+        "total_score": null,
+        "avg_processing_time": "None",
+        "annual_frequency": 260,
+        "description": "Merge EU and US outcomes into a consolidated set.",
+        "previous_steps": ["03 EU first-cut screen", "04 US first-cut screen"],
+        "next_steps": ["06 Any high-risk indicators?"]
+      },
+      {
+        "name": "06 Any high-risk indicators?",
+        "type": "Exclusive gateway",
+        "lane": "CRS Screening Tool",
+        "fte": null,
+        "total_score": null,
+        "avg_processing_time": "None",
+        "annual_frequency": 260,
+        "description": "Branch on presence of high-risk indicators (sanctions hit, severe KWD, critical jurisdiction, or bypass signature).",
+        "previous_steps": ["05 Join screened results"],
+        "next_steps": ["07 Tag as HIGH risk (first cut)", "08 Tag as LOW risk (first cut)"]
+      },
+      {
+        "name": "07 Tag as HIGH risk (first cut)",
+        "type": "Manual task",
+        "lane": "CRS Screening Team",
+        "fte": 0.0007,
+        "total_score": 8,
+        "avg_processing_time": "6m",
+        "annual_frequency": 260,
+        "description": "Apply high-risk label and attach matched rules and evidence snippets.",
+        "previous_steps": ["06 Any high-risk indicators?"],
+        "next_steps": ["09 Notify Compliance for expedited review"]
+      },
+      {
+        "name": "08 Tag as LOW risk (first cut)",
+        "type": "Manual task",
+        "lane": "CRS Screening Team",
+        "fte": 0.0005,
+        "total_score": 2,
+        "avg_processing_time": "4m",
+        "annual_frequency": 260,
+        "description": "Apply low-risk label; keep item in monitoring queue.",
+        "previous_steps": ["06 Any high-risk indicators?"],
+        "next_steps": ["10 Generate first-cut summary report"]
+      },
+      {
+        "name": "09 Notify Compliance for expedited review",
+        "type": "User task",
+        "lane": "Compliance Officer",
+        "fte": 0.0006,
+        "total_score": 7,
+        "avg_processing_time": "5m",
+        "annual_frequency": 260,
+        "description": "Send notification with case bundle (message payload, counterparties, rule matches, and rationale).",
+        "previous_steps": ["07 Tag as HIGH risk (first cut)"],
+        "next_steps": ["10 Generate first-cut summary report"]
+      },
+      {
+        "name": "10 Generate first-cut summary report",
+        "type": "User task",
+        "lane": "CRS Screening Tool",
+        "fte": 0.0004,
+        "total_score": 3,
+        "avg_processing_time": "3m",
+        "annual_frequency": 260,
+        "description": "Produce daily CSV/PDF: counts by risk level, top rules triggered, and items escalated to Compliance.",
+        "previous_steps": ["08 Tag as LOW risk (first cut)", "09 Notify Compliance for expedited review"],
+        "next_steps": ["11 Store audit trail"]
+      },
+      {
+        "name": "11 Store audit trail",
+        "type": "User task",
+        "lane": "CRS Screening Tool",
+        "fte": 0.0003,
+        "total_score": 4,
+        "avg_processing_time": "2m",
+        "annual_frequency": 260,
+        "description": "Persist step log, decisions, and artifacts in the control evidence repository.",
+        "previous_steps": ["10 Generate first-cut summary report"],
+        "next_steps": ["End of the control"]
+      },
+      {
+        "name": "End of the control",
+        "type": "End of the control",
+        "lane": "CRS System",
+        "fte": null,
+        "total_score": null,
+        "avg_processing_time": "None",
+        "annual_frequency": 260,
+        "description": "Control window closed.",
+        "previous_steps": ["11 Store audit trail"],
+        "next_steps": []
+      }
+    ]
+  }
+  

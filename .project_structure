@@ -2,46 +2,46 @@
 # Project layout (monorepo-friendly)
 # ─────────────────────────────────────────────────────────────────────────────
 # app/
-# __init__.py
-# main.py
-# core/
-# config.py
-# logging.py
-# db/
-# base.py
-# session.py
-# models/
-# project.py
-# report.py
-# schemas/
-# project.py
-# report.py
-# common.py
-# repositories/
-# project.py
-# report.py
-# services/
-# project_service.py
-# report_service.py
-# api/
-# deps.py
-# v1/
-# __init__.py
-# projects.py
-# reports.py
-# workflows.py
-# workflows/
-# __init__.py
-# state.py
-# graph.py
-# checkpointers.py
-# llm.py
-# instrumentation/
-# tracing.py
-# pyproject.toml
-# alembic.ini
-# alembic/
-# env.py
-# versions/
-# .env.example
+    # __init__.py
+    # main.py
+    # core/
+        # config.py
+        # logging.py
+    # db/
+        # base.py
+        # session.py
+    # models/
+        # project.py
+        # report.py
+    # schemas/
+        # project.py
+        # report.py
+        # common.py
+    # repositories/
+        # project.py
+        # report.py
+    # services/
+        # project_service.py
+        # report_service.py
+    # api/
+        # deps.py
+    # v1/
+        # __init__.py
+        # projects.py
+        # reports.py
+        # workflows.py
+    # workflows/
+        # __init__.py
+        # state.py
+        # graph.py
+        # checkpointers.py
+        # llm.py
+    # instrumentation/
+        # tracing.py
+        # pyproject.toml
+        # alembic.ini
+    # alembic/
+        # env.py
+    # versions/
+    # .env.example
 # ─────────────────────────────────────────────────────────────────────────────

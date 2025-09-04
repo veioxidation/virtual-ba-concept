@@ -1,6 +1,7 @@
 from __future__ import annotations
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, ForeignKey, Text, func, DateTime, Boolean, JSON, UniqueConstraint
+from sqlalchemy import String, ForeignKey, Text, func, DateTime, Boolean, JSON, UniqueConstraint # type: ignore
+
 from app.db.base import Base
 
 
@@ -11,8 +12,8 @@ class Project(Base):
     is_public: Mapped[bool] = mapped_column(Boolean, default=False, server_default="false")
     owner_id: Mapped[int | None] = mapped_column(ForeignKey("user.id", ondelete="SET NULL"))
     parent_id: Mapped[int | None] = mapped_column(ForeignKey("project.id", ondelete="SET NULL"))
-    created_at: Mapped["DateTime"] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped["DateTime"] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    created_at: Mapped["DateTime"] = mapped_column(DateTime(timezone=True), server_default=func.now()) # pylint: disable=no-member
+    updated_at: Mapped["DateTime"] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now()) # pylint: disable=no-member
 
 
     owner: Mapped["User" | None] = relationship(back_populates="owned_projects")
@@ -36,8 +37,8 @@ class Report(Base):
 
 
     created_by_id: Mapped[int | None] = mapped_column(ForeignKey("user.id", ondelete="SET NULL"))
-    created_at: Mapped["DateTime"] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped["DateTime"] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now())
+    created_at: Mapped["DateTime"] = mapped_column(DateTime(timezone=True), server_default=func.now()) # pylint: disable=no-member
+    updated_at: Mapped["DateTime"] = mapped_column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now()) # pylint: disable=no-member
 
 
     # Optional linkage to a LangGraph run/thread for provenance
