@@ -49,6 +49,11 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="AI Workflows API", version="0.1.0", lifespan=lifespan)
 
 
+@app.get("/")
+async def root():
+    return {"message": "Hello World"}
+
+
 # CORS for your Vite React app
 app.add_middleware(
     CORSMiddleware,
