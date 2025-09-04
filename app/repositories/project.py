@@ -3,7 +3,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, update, delete
 from app.models.project import Project, Report
 
-
 class ProjectRepository:
     def __init__(self, session: AsyncSession):
         self.session = session

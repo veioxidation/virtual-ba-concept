@@ -1,0 +1,17 @@
+[project]
+name = "virtual-ba"
+version = "0.1.0"
+description = "Virtual Business Analyst prototype"
+readme = "README.md"
+requires-python = ">=3.12"
+
+dependencies = [
+  "fastapi",
+  "uvicorn",
+  "sqlalchemy",
+  "pydantic",
+  "pytest>=8.4.2",
+]
+
+[tool.uv]
+# optional: configure settings here

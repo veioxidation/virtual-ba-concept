@@ -1,5 +1,6 @@
 from agent.model.model import model
 
+
 def route_user_input(state: dict) -> dict:
     question = state["user_input"]
 
@@ -14,9 +15,11 @@ def route_user_input(state: dict) -> dict:
     - "advisory": ask for suggestions/improvements
     """
 
-    completion = model.invoke([
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": question}
-    ])
+    completion = model.invoke(
+        [
+            {"role": "system", "content": system_prompt},
+            {"role": "user", "content": question},
+        ]
+    )
 
     return {**state, "route": completion.content.strip()}

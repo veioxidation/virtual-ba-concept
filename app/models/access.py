@@ -23,12 +23,11 @@ class ProjectAccess(Base):
     role: Mapped[ProjectRole] = mapped_column(Enum(ProjectRole, native_enum=False))
     created_at: Mapped["DateTime"] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
-
     user: Mapped["User"] = relationship(back_populates="project_accesses")
     project: Mapped["Project"] = relationship(back_populates="accesses")
 
 
     __table_args__ = (
-    UniqueConstraint("user_id", "project_id", name="uq_project_access_user_project"),
+        UniqueConstraint("user_id", "project_id", name="uq_project_access_user_project"),
     )
 
