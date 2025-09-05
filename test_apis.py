@@ -2,6 +2,7 @@
 """Quick test script to verify API flow for processes, projects, reports and metrics."""
 
 import asyncio
+import uuid
 
 import httpx
 import pytest
@@ -16,8 +17,9 @@ from app.repositories.metrics import MetricDefRepository, MetricValueRepository
 @pytest.mark.asyncio
 async def test_apis() -> None:
     """Exercise the API endpoints including metrics and reports."""
-    # Ensure tables exist
+    # Reset database state so tests can be rerun without unique constraint errors
     async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
     transport = ASGITransport(app=app)
@@ -25,7 +27,7 @@ async def test_apis() -> None:
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
         # Create a user
         user_data = {
-            "gpn": "test-user-123",
+            "gpn": f"test-user-{uuid.uuid4().hex}",
             "email": "test@example.com",
             "display_name": "Test User",
         }
