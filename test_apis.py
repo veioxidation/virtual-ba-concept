@@ -8,8 +8,9 @@ import httpx
 import pytest
 from httpx import ASGITransport
 
+from app.core.log import logger
 from app.db.base import Base
-from app.db.session import engine, AsyncSessionMaker
+from app.db.session import AsyncSessionMaker, engine
 from app.main import app
 from app.repositories.metrics import MetricDefRepository, MetricValueRepository
 
@@ -26,13 +27,15 @@ async def test_apis() -> None:
 
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
         # Create a user
+
         user_data = {
             "gpn": f"test-user-{uuid.uuid4().hex}",
             "email": "test@example.com",
             "display_name": "Test User",
         }
         resp = await client.post("/api/v1/users/", json=user_data)
-        assert resp.status_code == 200
+        logger.info(f"Response: {resp.json()}, code: {resp.status_code}")
+        assert resp.status_code == 201
         user_id = resp.json()["id"]
 
         # Create a process
@@ -44,7 +47,8 @@ async def test_apis() -> None:
             "is_public": True,
         }
         resp = await client.post("/api/v1/processes/", json=process_data)
-        assert resp.status_code == 200
+        logger.info(f"Response: {resp.json()}, code: {resp.status_code}")
+        assert resp.status_code == 201
         process_id = resp.json()["id"]
 
         # Create a project
@@ -52,6 +56,7 @@ async def test_apis() -> None:
         resp = await client.post(
             f"/api/v1/processes/{process_id}/projects/", json=project_data
         )
+        logger.info(f"Response: {resp.json()}, code: {resp.status_code}")
         assert resp.status_code == 201
         project_id = resp.json()["id"]
 
@@ -64,6 +69,7 @@ async def test_apis() -> None:
             f"/api/v1/processes/{process_id}/projects/{project_id}/reports",
             json=report_data,
         )
+        logger.info(f"Response: {resp.json()}, code: {resp.status_code}")
         assert resp.status_code == 201
 
         # Insert a metric value directly via repository
@@ -104,4 +110,3 @@ async def test_apis() -> None:
 
 if __name__ == "__main__":
     asyncio.run(test_apis())
-
