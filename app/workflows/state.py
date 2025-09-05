@@ -1,10 +1,19 @@
 from __future__ import annotations
-from typing import TypedDict
-from typing_extensions import Annotated
+
 from operator import add
+from typing import TypedDict
+
+from typing_extensions import Annotated
 
 
-# Minimal shared state for a demo graph. Extend with your own channels.
-class WorkflowState(TypedDict):
+class WorkflowState(TypedDict, total=False):
+    """State shared across workflow nodes.
+
+    `messages` accumulates conversation turns. `process` holds the BPMN JSON
+    describing the business process. `report` stores the generated analysis
+    sections for downstream use.
+    """
+
     messages: Annotated[list[dict], add]
-    summary: str
+    process: dict | None
+    report: dict | None
