@@ -6,6 +6,7 @@ from app.db.base import Base
 
 if TYPE_CHECKING:
     from app.models.project import Project
+    from app.models.metrics import MetricValue
 
 
 class Process(Base):
@@ -25,6 +26,9 @@ class Process(Base):
 
     # One-to-many relationship with Project (one process can be used by many projects)
     projects: Mapped[list["Project"]] = relationship(back_populates="process")
+
+    # Metrics associated with this process
+    metrics: Mapped[list["MetricValue"]] = relationship(back_populates="process")
 
     __table_args__ = (
         UniqueConstraint("mod_guid", name="uq_process_mod_guid"),
