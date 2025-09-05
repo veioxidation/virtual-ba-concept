@@ -79,23 +79,22 @@ async def test_apis() -> None:
             metric_def = await metric_def_repo.create(name="accuracy", unit="%")
             await session.commit()
             await metric_val_repo.create(
-                metric_id=metric_def.id, project_id=project_id, value_num=0.95
+                metric_id=metric_def.id, process_id=process_id, value_num=0.95
             )
             await session.commit()
 
-        # Retrieve project including metrics and reports
+        # Retrieve project including reports
         resp = await client.get(
             f"/api/v1/processes/{process_id}/projects/{project_id}",
-            params={"include_reports": True, "include_metrics": True},
+            params={"include_reports": True},
         )
         assert resp.status_code == 200
         data = resp.json()
         assert len(data["reports"]) == 1
-        assert len(data["metrics"]) == 1
 
         # List metrics via endpoint
         resp = await client.get(
-            f"/api/v1/processes/{process_id}/projects/{project_id}/metrics"
+            f"/api/v1/processes/{process_id}/metrics"
         )
         assert resp.status_code == 200
         assert len(resp.json()) == 1

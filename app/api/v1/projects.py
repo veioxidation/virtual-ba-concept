@@ -4,11 +4,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db
-from app.services.project_service import ProjectService
 from app.schemas.project import (
     ProjectCreate,
-    ProjectUpdate,
-    ProjectOut,
     ProjectDetail,
     ProjectOut,
     ProjectUpdate,
@@ -60,16 +57,13 @@ async def get_project(
     process_id: int,
     project_id: int,
     include_reports: bool = False,
-    include_metrics: bool = False,
     session: AsyncSession = Depends(get_db),
 ):
     svc = ProjectService(session)
-    obj = await svc.get(
-        project_id, include_reports=include_reports, include_metrics=include_metrics
-    )
+    obj = await svc.get(project_id, include_reports=include_reports)
     if not obj or obj.process_id != process_id:
         raise HTTPException(404, "Project not found")
-    if include_reports or include_metrics:
+    if include_reports:
         return ProjectDetail.model_validate(obj)
     return ProjectOut.model_validate(obj)
 
@@ -100,9 +94,7 @@ async def delete_project(
     await svc.delete(project_id)
 
 
-@router.post(
-    "/{project_id}/reports", response_model=ReportOut, status_code=201
-)
+@router.post("/{project_id}/reports", response_model=ReportOut, status_code=201)
 async def add_report(
     process_id: int,
     project_id: int,
@@ -113,9 +105,7 @@ async def add_report(
     project = await svc.get(project_id)
     if not project or project.process_id != process_id:
         raise HTTPException(404, "Project not found")
-    return await svc.add_report(
-        project_id, title=data.title, sections=data.sections
-    )
+    return await svc.add_report(project_id, title=data.title, sections=data.sections)
 
 
 @router.get("/{project_id}/reports", response_model=list[ReportOut])
@@ -131,18 +121,3 @@ async def list_reports(
     if not project or project.process_id != process_id:
         raise HTTPException(404, "Project not found")
     return await svc.list_reports(project_id, offset=offset, limit=limit)
-
-
-@router.get("/{project_id}/metrics", response_model=list[MetricValueOut])
-async def list_metrics(
-    process_id: int,
-    project_id: int,
-    offset: int = Query(0, ge=0),
-    limit: int = Query(50, ge=1, le=200),
-    session: AsyncSession = Depends(get_db),
-):
-    svc = ProjectService(session)
-    project = await svc.get(project_id)
-    if not project or project.process_id != process_id:
-        raise HTTPException(404, "Project not found")
-    return await svc.list_metrics(project_id, offset=offset, limit=limit)
