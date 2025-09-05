@@ -69,3 +69,8 @@ app.include_router(projects_router.router, prefix=settings.api_v1_prefix)
 # app.include_router(workflows_router.router, prefix=settings.api_v1_prefix)
 app.include_router(processes_router.router, prefix=settings.api_v1_prefix)
 app.include_router(users_router.router, prefix=settings.api_v1_prefix)
+
+# import yaml
+
+# with open("openapi.yaml", "w") as f:
+#     yaml.dump(app.openapi(), f, sort_keys=False)
