@@ -1,7 +1,10 @@
 from __future__ import annotations
+
 from typing import TYPE_CHECKING
+
+from sqlalchemy import JSON, Float, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import String, ForeignKey, Float, DateTime, func, JSON, UniqueConstraint
+
 from app.db.base import Base
 
 if TYPE_CHECKING:
@@ -26,7 +29,7 @@ class MetricValue(Base):
     # )
 
     value_num: Mapped[float | None] = mapped_column(Float)
-    # value_json: Mapped[dict | None] = mapped_column(JSON)
+    value_json: Mapped[dict | None] = mapped_column(JSON)
 
     # computed_by_run_id: Mapped[int | None] = mapped_column(ForeignKey("workflowrun.id", ondelete="SET NULL"))
     # computed_at: Mapped["DateTime"] = mapped_column(DateTime(timezone=True), server_default=func.now())
@@ -34,7 +37,6 @@ class MetricValue(Base):
     metric: Mapped["MetricDef"] = relationship()
     process: Mapped["Process"] = relationship(back_populates="metrics")
     # process_version: Mapped["ProcessVersion" | None] = relationship(back_populates="metrics")
-
 
     # __table_args__ = (
     #     UniqueConstraint("process_version_id", "metric_id", name="uq_metric_per_version"),

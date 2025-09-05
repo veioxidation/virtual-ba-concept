@@ -1,43 +1,44 @@
 #!/usr/bin/env python3
-"""Quick test script to verify the new APIs work."""
+"""Quick test script to verify API flow for processes, projects, reports and metrics."""
 
 import asyncio
+import uuid
 
 import httpx
+import pytest
 from httpx import ASGITransport
 
+from app.core.log import logger
 from app.db.base import Base
-from app.db.session import engine
-
+from app.db.session import AsyncSessionMaker, engine
 from app.main import app
+from app.repositories.metrics import MetricDefRepository, MetricValueRepository
 
-async def test_apis():
-    """Test the new process and user APIs."""
-    # Create tables
+
+@pytest.mark.asyncio
+async def test_apis() -> None:
+    """Exercise the API endpoints including metrics and reports."""
+    # Reset database state so tests can be rerun without unique constraint errors
     async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
 
-    # Create an ASGI transport for FastAPI app
     transport = ASGITransport(app=app)
 
-    # Start the app
     async with httpx.AsyncClient(transport=transport, base_url="http://test") as client:
-        print("🧪 Testing Process and User APIs...")
+        # Create a user
 
-        # Test user creation
-        print("1. Creating a test user...")
         user_data = {
-            "gpn": "test-user-123",
+            "gpn": f"test-user-{uuid.uuid4().hex}",
             "email": "test@example.com",
             "display_name": "Test User",
         }
-        response = await client.post("/api/v1/users/", json=user_data)
-        print(f"   ✅ User created: {response.status_code}")
-        user = response.json()
-        user_id = user["id"]
+        resp = await client.post("/api/v1/users/", json=user_data)
+        logger.info(f"Response: {resp.json()}, code: {resp.status_code}")
+        assert resp.status_code == 201
+        user_id = resp.json()["id"]
 
-        # Test process creation
-        print("2. Creating a test process...")
+        # Create a process
         process_data = {
             "name": "Test Process",
             "description": "A test process for API testing",
@@ -45,41 +46,66 @@ async def test_apis():
             "owner_id": user_id,
             "is_public": True,
         }
-        response = await client.post("/api/v1/processes/", json=process_data)
-        print(f"   ✅ Process created: {response.status_code}")
-        process = response.json()
-        process_id = process["id"]
+        resp = await client.post("/api/v1/processes/", json=process_data)
+        logger.info(f"Response: {resp.json()}, code: {resp.status_code}")
+        assert resp.status_code == 201
+        process_id = resp.json()["id"]
 
-        # Test getting the process
-        print("3. Getting the created process...")
-        response = await client.get(f"/api/v1/processes/{process_id}")
-        print(f"   ✅ Process retrieved: {response.status_code}")
-
-        # Test getting process by GUID
-        print("4. Getting process by GUID...")
-        response = await client.get("/api/v1/processes/by-guid/test-guid-456")
-        print(f"   ✅ Process by GUID: {response.status_code}")
-
-        # Test listing public processes
-        print("5. Listing public processes...")
-        response = await client.get("/api/v1/processes/public")
-        print(
-            f"   ✅ Public processes: {response.status_code} - {len(response.json())} processes"
+        # Create a project
+        project_data = {"name": "Test Project", "description": "Project for API"}
+        resp = await client.post(
+            f"/api/v1/processes/{process_id}/projects/", json=project_data
         )
+        logger.info(f"Response: {resp.json()}, code: {resp.status_code}")
+        assert resp.status_code == 201
+        project_id = resp.json()["id"]
 
-        # Test getting user by GPN
-        print("6. Getting user by GPN...")
-        response = await client.get("/api/v1/users/by-gpn/test-user-123")
-        print(f"   ✅ User by GPN: {response.status_code}")
-
-        # Test listing active users
-        print("7. Listing active users...")
-        response = await client.get("/api/v1/users/active")
-        print(
-            f"   ✅ Active users: {response.status_code} - {len(response.json())} users"
+        # Attach a report
+        report_data = {
+            "title": "Initial Report",
+            "sections": {"overview": {"text": "Initial overview"}},
+        }
+        resp = await client.post(
+            f"/api/v1/processes/{process_id}/projects/{project_id}/reports",
+            json=report_data,
         )
+        logger.info(f"Response: {resp.json()}, code: {resp.status_code}")
+        assert resp.status_code == 201
 
-        print("🎉 All API tests passed!")
+        # Insert a metric value directly via repository
+        async with AsyncSessionMaker() as session:
+            metric_def_repo = MetricDefRepository(session)
+            metric_val_repo = MetricValueRepository(session)
+            metric_def = await metric_def_repo.create(name="accuracy", unit="%")
+            await session.commit()
+            await metric_val_repo.create(
+                metric_id=metric_def.id, project_id=project_id, value_num=0.95
+            )
+            await session.commit()
+
+        # Retrieve project including metrics and reports
+        resp = await client.get(
+            f"/api/v1/processes/{process_id}/projects/{project_id}",
+            params={"include_reports": True, "include_metrics": True},
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert len(data["reports"]) == 1
+        assert len(data["metrics"]) == 1
+
+        # List metrics via endpoint
+        resp = await client.get(
+            f"/api/v1/processes/{process_id}/projects/{project_id}/metrics"
+        )
+        assert resp.status_code == 200
+        assert len(resp.json()) == 1
+
+        # List reports via endpoint
+        resp = await client.get(
+            f"/api/v1/processes/{process_id}/projects/{project_id}/reports"
+        )
+        assert resp.status_code == 200
+        assert len(resp.json()) == 1
 
 
 if __name__ == "__main__":

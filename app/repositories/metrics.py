@@ -95,14 +95,12 @@ class MetricValueRepository:
         process_id: int | None = None,
         value_num: float | None = None,
         value_json: dict | None = None,
-        computed_by_run_id: int | None = None,
     ) -> MetricValue:
         obj = MetricValue(
             metric_id=metric_id,
             process_id=process_id,
             value_num=value_num,
             value_json=value_json,
-            computed_by_run_id=computed_by_run_id,
         )
         self.session.add(obj)
         await self.session.flush()
@@ -114,15 +112,12 @@ class MetricValueRepository:
         *,
         value_num: float | None = None,
         value_json: dict | None = None,
-        computed_by_run_id: int | None = None,
     ) -> MetricValue | None:
         update_data = {}
         if value_num is not None:
             update_data["value_num"] = value_num
         if value_json is not None:
             update_data["value_json"] = value_json
-        if computed_by_run_id is not None:
-            update_data["computed_by_run_id"] = computed_by_run_id
 
         if not update_data:
             return await self.get(value_id)

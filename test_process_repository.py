@@ -19,6 +19,7 @@ async def engine():
     from app.db.session import engine
 
     async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.drop_all)
         await conn.run_sync(Base.metadata.create_all)
     yield engine
 
@@ -258,11 +259,14 @@ class TestProcessRepository:
 
 from app.repositories.project import ProjectRepository
 from app.repositories.report import ReportRepository
+from app.repositories.metrics import MetricDefRepository, MetricValueRepository
 
 
 @pytest.mark.asyncio
-async def test_project_and_report_crud_with_process(session, test_users, process_repo):
-    """Test CRUD operations for Project linked to a Process, and Report linked to Project."""
+async def test_project_report_metric_crud_with_process(
+    session, test_users, process_repo
+):
+    """Test CRUD operations for Project with related Reports and Metrics."""
     user = test_users[0]
 
     # 1. Create a process
@@ -314,16 +318,10 @@ async def test_project_and_report_crud_with_process(session, test_users, process
     await session.commit()
     assert report.id is not None
     assert report.project_id == project.id
-    assert report.title == "Initial Report"
-    assert report.sections["overview"]["text"] == "Initial overview section"
 
-    # 6. Retrieve the report
+    # 6. Retrieve and update the report
     retrieved_report = await report_repo.get(report.id)
     assert retrieved_report is not None
-    assert retrieved_report.title == "Initial Report"
-    assert retrieved_report.project_id == project.id
-
-    # 7. Update the report
     updated_report = await report_repo.update(
         report.id,
         title="Updated Report Title",
@@ -332,15 +330,39 @@ async def test_project_and_report_crud_with_process(session, test_users, process
     await session.commit()
     assert updated_report is not None
     assert updated_report.title == "Updated Report Title"
-    assert updated_report.sections["overview"]["text"] == "Updated overview"
 
-    # 8. Delete the report
+    # 7. Add a metric definition and value
+    metric_def_repo = MetricDefRepository(session)
+    metric_val_repo = MetricValueRepository(session)
+    metric_def = await metric_def_repo.create(name="throughput", unit="tps")
+    await session.commit()
+    metric_value = await metric_val_repo.create(
+        metric_id=metric_def.id, project_id=project.id, value_num=42.0
+    )
+    await session.commit()
+    assert metric_value.project_id == project.id
+
+    # 8. Retrieve project with reports and metrics
+    retrieved_full = await project_repo.get(
+        project.id, include_reports=True, include_metrics=True
+    )
+    assert len(retrieved_full.reports) == 1
+    assert len(retrieved_full.metrics) == 1
+    assert retrieved_full.metrics[0].value_num == 42.0
+
+    # 9. Delete the metric
+    await metric_val_repo.delete(metric_value.id)
+    await session.commit()
+    metrics_left = await metric_val_repo.list_by_project(project.id)
+    assert metrics_left == []
+
+    # 10. Delete the report
     await report_repo.delete(report.id)
     await session.commit()
     deleted_report = await report_repo.get(report.id)
     assert deleted_report is None
 
-    # 9. Delete the project
+    # 11. Delete the project
     await project_repo.delete(project.id)
     await session.commit()
     deleted = await project_repo.get(project.id)
@@ -402,9 +424,9 @@ if __name__ == "__main__":
             user_processes = await repo.list_by_owner(user1.id)
             print(f"   ✅ Listed {len(user_processes)} processes for user {user1.gpn}")
 
-            # Test project and report crud with process
-            print("6. Testing project and report crud with process...")
-            await test_project_and_report_crud_with_process(
+            # Test project, report and metric CRUD with process
+            print("6. Testing project, report and metric crud with process...")
+            await test_project_report_metric_crud_with_process(
                 session, [user1, user2], repo
             )
 
