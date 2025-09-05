@@ -46,7 +46,7 @@ async def lifespan(app: FastAPI):
         # teardown handled by lifespan_db
 
 
-app = FastAPI(title="AI Workflows API", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="GOptic chat - API", version="0.1.0", lifespan=lifespan)
 
 
 @app.get("/")

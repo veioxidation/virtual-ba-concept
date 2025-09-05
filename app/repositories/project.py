@@ -16,7 +16,6 @@ class ProjectRepository:
         limit: int = 50,
         *,
         include_reports: bool = False,
-        include_metrics: bool = False,
     ) -> list[Project]:
         stmt = (
             select(Project)
@@ -26,8 +25,6 @@ class ProjectRepository:
         )
         if include_reports:
             stmt = stmt.options(selectinload(Project.reports))
-        if include_metrics:
-            stmt = stmt.options(selectinload(Project.metrics))
         res = await self.session.execute(stmt)
         return list(res.scalars().unique().all())
 
@@ -37,13 +34,10 @@ class ProjectRepository:
         project_id: int,
         *,
         include_reports: bool = False,
-        include_metrics: bool = False,
     ) -> Project | None:
         stmt = select(Project).where(Project.id == project_id)
         if include_reports:
             stmt = stmt.options(selectinload(Project.reports))
-        if include_metrics:
-            stmt = stmt.options(selectinload(Project.metrics))
         res = await self.session.execute(stmt)
         return res.scalar_one_or_none()
 

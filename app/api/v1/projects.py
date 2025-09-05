@@ -4,9 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db
-from app.schemas.metric import MetricValueOut
+from app.services.project_service import ProjectService
 from app.schemas.project import (
     ProjectCreate,
+    ProjectUpdate,
+    ProjectOut,
     ProjectDetail,
     ProjectOut,
     ProjectUpdate,
@@ -98,7 +100,9 @@ async def delete_project(
     await svc.delete(project_id)
 
 
-@router.post("/{project_id}/reports", response_model=ReportOut, status_code=201)
+@router.post(
+    "/{project_id}/reports", response_model=ReportOut, status_code=201
+)
 async def add_report(
     process_id: int,
     project_id: int,
@@ -109,7 +113,9 @@ async def add_report(
     project = await svc.get(project_id)
     if not project or project.process_id != process_id:
         raise HTTPException(404, "Project not found")
-    return await svc.add_report(project_id, title=data.title, sections=data.sections)
+    return await svc.add_report(
+        project_id, title=data.title, sections=data.sections
+    )
 
 
 @router.get("/{project_id}/reports", response_model=list[ReportOut])
