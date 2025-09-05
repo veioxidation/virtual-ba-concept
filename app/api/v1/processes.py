@@ -5,6 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import get_db
 from app.schemas.process import ProcessCreate, ProcessOut, ProcessUpdate
+from app.schemas.metric import MetricValueOut
 from app.services.process_service import ProcessService
 
 router = APIRouter(prefix="/processes", tags=["processes"])
@@ -111,6 +112,20 @@ async def transfer_process_ownership(
     if not obj:
         raise HTTPException(404, "Process not found")
     return obj
+
+
+@router.get("/{process_id}/metrics", response_model=list[MetricValueOut])
+async def list_metrics(
+    process_id: int,
+    offset: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
+    session: AsyncSession = Depends(get_db),
+):
+    svc = ProcessService(session)
+    process = await svc.get(process_id)
+    if not process:
+        raise HTTPException(404, "Process not found")
+    return await svc.list_metrics(process_id, offset=offset, limit=limit)
 
 
 @router.delete("/{process_id}", status_code=204)

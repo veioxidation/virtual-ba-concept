@@ -5,7 +5,7 @@ from sqlalchemy import String, ForeignKey, Float, DateTime, func, JSON, UniqueCo
 from app.db.base import Base
 
 if TYPE_CHECKING:
-    from app.models.project import Project
+    from app.models.process import Process
 
 
 class MetricDef(Base):
@@ -18,8 +18,12 @@ class MetricDef(Base):
 class MetricValue(Base):
     id: Mapped[int] = mapped_column(primary_key=True)
     metric_id: Mapped[int] = mapped_column(ForeignKey("metricdef.id", ondelete="CASCADE"))
-    project_id: Mapped[int | None] = mapped_column(ForeignKey("project.id", ondelete="CASCADE"), index=True)
-    # process_version_id: Mapped[int | None] = mapped_column(ForeignKey("processversion.id", ondelete="CASCADE"), index=True)
+    process_id: Mapped[int | None] = mapped_column(
+        ForeignKey("process.id", ondelete="CASCADE"), index=True
+    )
+    # process_version_id: Mapped[int | None] = mapped_column(
+    #     ForeignKey("processversion.id", ondelete="CASCADE"), index=True
+    # )
 
     value_num: Mapped[float | None] = mapped_column(Float)
     # value_json: Mapped[dict | None] = mapped_column(JSON)
@@ -28,7 +32,7 @@ class MetricValue(Base):
     # computed_at: Mapped["DateTime"] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     metric: Mapped["MetricDef"] = relationship()
-    project: Mapped["Project"] = relationship(back_populates="metrics")
+    process: Mapped["Process"] = relationship(back_populates="metrics")
     # process_version: Mapped["ProcessVersion" | None] = relationship(back_populates="metrics")
 
 

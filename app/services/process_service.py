@@ -3,12 +3,15 @@ from __future__ import annotations
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.process import Process
+from app.models.metrics import MetricValue
 from app.repositories.process import ProcessRepository
+from app.repositories.metrics import MetricValueRepository
 
 
 class ProcessService:
     def __init__(self, session: AsyncSession):
         self.repo = ProcessRepository(session)
+        self.metric_repo = MetricValueRepository(session)
         self.session = session
 
     async def list(self, *, offset: int = 0, limit: int = 50) -> list[Process]:
@@ -84,3 +87,9 @@ class ProcessService:
     ) -> Process | None:
         """Transfer ownership of a process to a new user."""
         return await self.update(process_id, owner_id=new_owner_id)
+
+    async def list_metrics(
+        self, process_id: int, *, offset: int = 0, limit: int = 50
+    ) -> list[MetricValue]:
+        """List metric values associated with a process."""
+        return await self.metric_repo.list_by_process(process_id, offset, limit)
