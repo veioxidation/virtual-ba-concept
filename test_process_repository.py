@@ -343,9 +343,7 @@ async def test_project_report_metric_crud_with_process(
     assert metric_value.project_id == project.id
 
     # 8. Retrieve project with reports and metrics
-    retrieved_full = await project_repo.get(
-        project.id, include_reports=True
-    )
+    retrieved_full = await project_repo.get(project.id, include_reports=True)
     assert len(retrieved_full.reports) == 1
 
     # 9. Delete the metric
