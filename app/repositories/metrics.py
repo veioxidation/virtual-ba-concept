@@ -92,13 +92,13 @@ class MetricValueRepository:
     async def create(
         self,
         metric_id: int,
-        project_id: int | None = None,
+        process_id: int | None = None,
         value_num: float | None = None,
         value_json: dict | None = None,
     ) -> MetricValue:
         obj = MetricValue(
             metric_id=metric_id,
-            project_id=project_id,
+            process_id=process_id,
             value_num=value_num,
             value_json=value_json,
         )
@@ -136,13 +136,13 @@ class MetricValueRepository:
             delete(MetricValue).where(MetricValue.id == value_id)
         )
 
-    async def list_by_project(
-        self, project_id: int, offset: int = 0, limit: int = 50
+    async def list_by_process(
+        self, process_id: int, offset: int = 0, limit: int = 50
     ) -> list[MetricValue]:
-        """List all metric values for a specific project."""
+        """List all metric values for a specific process."""
         res = await self.session.execute(
             select(MetricValue)
-            .where(MetricValue.project_id == project_id)
+            .where(MetricValue.process_id == process_id)
             .offset(offset)
             .limit(limit)
         )
@@ -160,26 +160,26 @@ class MetricValueRepository:
         )
         return list(res.scalars().all())
 
-    async def get_latest_by_project_and_metric(
-        self, project_id: int, metric_id: int
+    async def get_latest_by_process_and_metric(
+        self, process_id: int, metric_id: int
     ) -> MetricValue | None:
-        """Get the latest metric value for a specific project and metric."""
+        """Get the latest metric value for a specific process and metric."""
         res = await self.session.execute(
             select(MetricValue)
             .where(
-                MetricValue.project_id == project_id, MetricValue.metric_id == metric_id
+                MetricValue.process_id == process_id, MetricValue.metric_id == metric_id
             )
             .order_by(MetricValue.computed_at.desc())
             .limit(1)
         )
         return res.scalar_one_or_none()
 
-    async def get_project_metrics_summary(self, project_id: int) -> list[MetricValue]:
-        """Get the latest value for each metric in a project."""
+    async def get_process_metrics_summary(self, process_id: int) -> list[MetricValue]:
+        """Get the latest value for each metric in a process."""
         # This is a simplified version - in practice you might want to use a more complex query
         res = await self.session.execute(
             select(MetricValue)
-            .where(MetricValue.project_id == project_id)
+            .where(MetricValue.process_id == process_id)
             .order_by(MetricValue.metric_id, MetricValue.computed_at.desc())
         )
         return list(res.scalars().all())

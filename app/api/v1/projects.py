@@ -1,6 +1,8 @@
 from __future__ import annotations
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.api.deps import get_db
 from app.services.project_service import ProjectService
 from app.schemas.project import (
@@ -8,10 +10,11 @@ from app.schemas.project import (
     ProjectUpdate,
     ProjectOut,
     ProjectDetail,
+    ProjectOut,
+    ProjectUpdate,
 )
 from app.schemas.report import ReportCreate, ReportOut
-from app.schemas.metric import MetricValueOut
-
+from app.services.project_service import ProjectService
 
 router = APIRouter(prefix="/processes/{process_id}/projects", tags=["projects"])
 

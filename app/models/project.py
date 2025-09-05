@@ -17,7 +17,6 @@ from app.db.base import Base
 
 if TYPE_CHECKING:
     from app.models.access import ProjectAccess
-    from app.models.metrics import MetricValue
     from app.models.process import Process
     from app.models.user import User
 
@@ -57,7 +56,6 @@ class Project(Base):
         back_populates="project", cascade="all, delete-orphan"
     )
     process: Mapped["Process"] = relationship(back_populates="projects")
-    metrics: Mapped[list["MetricValue"]] = relationship(back_populates="project")
 
 
 class Report(Base):

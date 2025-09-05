@@ -46,7 +46,12 @@ async def lifespan(app: FastAPI):
         # teardown handled by lifespan_db
 
 
-app = FastAPI(title="AI Workflows API", version="0.1.0", lifespan=lifespan)
+app = FastAPI(title="GOptic chat - API", version="0.1.0", lifespan=lifespan)
+
+
+@app.get("/")
+async def root():
+    return {"message": "Hello World"}
 
 
 # CORS for your Vite React app
@@ -64,3 +69,8 @@ app.include_router(projects_router.router, prefix=settings.api_v1_prefix)
 # app.include_router(workflows_router.router, prefix=settings.api_v1_prefix)
 app.include_router(processes_router.router, prefix=settings.api_v1_prefix)
 app.include_router(users_router.router, prefix=settings.api_v1_prefix)
+
+# import yaml
+
+# with open("openapi.yaml", "w") as f:
+#     yaml.dump(app.openapi(), f, sort_keys=False)
