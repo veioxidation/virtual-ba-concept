@@ -15,4 +15,5 @@ langchain>=0.2
 langgraph-checkpoint-sqlite>=1.0
 langgraph-checkpoint-postgres>=1.0
 psycopg[binary]>=3.2
+openai>=1.0
 
