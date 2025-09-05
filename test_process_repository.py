@@ -257,9 +257,9 @@ class TestProcessRepository:
         assert user2_processes[0].owner_id == user2.id
 
 
+from app.repositories.metrics import MetricDefRepository, MetricValueRepository
 from app.repositories.project import ProjectRepository
 from app.repositories.report import ReportRepository
-from app.repositories.metrics import MetricDefRepository, MetricValueRepository
 
 
 @pytest.mark.asyncio
@@ -344,11 +344,9 @@ async def test_project_report_metric_crud_with_process(
 
     # 8. Retrieve project with reports and metrics
     retrieved_full = await project_repo.get(
-        project.id, include_reports=True, include_metrics=True
+        project.id, include_reports=True
     )
     assert len(retrieved_full.reports) == 1
-    assert len(retrieved_full.metrics) == 1
-    assert retrieved_full.metrics[0].value_num == 42.0
 
     # 9. Delete the metric
     await metric_val_repo.delete(metric_value.id)

@@ -93,9 +93,7 @@ async def test_apis() -> None:
         assert len(data["reports"]) == 1
 
         # List metrics via endpoint
-        resp = await client.get(
-            f"/api/v1/processes/{process_id}/metrics"
-        )
+        resp = await client.get(f"/api/v1/processes/{process_id}/metrics")
         assert resp.status_code == 200
         assert len(resp.json()) == 1
 
