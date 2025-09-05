@@ -4,12 +4,15 @@ from pathlib import Path
 
 import pytest
 
+from app.core.config import settings
 from app.workflows import graph
 
 # Skip if the OpenAI client library is not installed
 pytest.importorskip("openai")
 
-HAS_API_KEY = bool(os.getenv("OPENAI_API_KEY") or os.getenv("AZURE_OPENAI_API_KEY"))
+api_key = settings.openai_api_key
+
+HAS_API_KEY = bool(api_key)
 
 @pytest.mark.skipif(not HAS_API_KEY, reason="no LLM API key configured")
 @pytest.mark.parametrize("json_path", Path("test_data").glob("*.json"))

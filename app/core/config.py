@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pathlib import Path
 
 
 class Settings(BaseSettings):
@@ -30,7 +31,11 @@ class Settings(BaseSettings):
     openai_api_key: str | None = None
 
     # Allow overriding settings via a local .env file or environment variables
-    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=Path(__file__).resolve().parents[2] / ".env",  # 2 levels up
+        env_file_encoding="utf-8",
+        extra="ignore",  # optional
+    )
 
     @property
     def database_url(self) -> str:

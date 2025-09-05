@@ -11,5 +11,5 @@ from app.workflows.models import LLM_MODELS
 def chat_model():
     """Instantiate the chat model configured for the current environment."""
     model_name = LLM_MODELS.get(settings.llm_model, LLM_MODELS["openai"])
-    return init_chat_model(model=model_name)
+    return init_chat_model(model=model_name, api_key=settings.openai_api_key)
 

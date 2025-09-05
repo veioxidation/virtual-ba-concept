@@ -1,0 +1,275 @@
+{
+    "process_name": "Client Onboarding – End-to-End",
+    "process_description": "End-to-end client onboarding process covering initiation, KYC/AML, credit, tax, and account setup. Multiple workstreams run in parallel and converge before client activation. Ensures compliance, risk mitigation, and a smooth client journey.",
+    "steps": [
+      {
+        "name": "Start of the control",
+        "type": "Timer start event",
+        "lane": "CRM System",
+        "fte": null,
+        "total_score": null,
+        "avg_processing_time": "None",
+        "annual_frequency": 260,
+        "description": "Triggered upon client interest confirmation or new deal initiation.",
+        "previous_steps": [],
+        "next_steps": ["01 Capture client request"]
+      },
+      {
+        "name": "01 Capture client request",
+        "type": "User task",
+        "lane": "Sales / Relationship Manager",
+        "fte": 0.0007,
+        "total_score": 3,
+        "avg_processing_time": "10m",
+        "annual_frequency": 260,
+        "description": "Enter client details into CRM: entity name, jurisdiction, product interest, contact information.",
+        "previous_steps": ["Start of the control"],
+        "next_steps": ["02 Initiate onboarding workflow"]
+      },
+      {
+        "name": "02 Initiate onboarding workflow",
+        "type": "User task",
+        "lane": "CRM System",
+        "fte": 0.0005,
+        "total_score": 3,
+        "avg_processing_time": "5m",
+        "annual_frequency": 260,
+        "description": "Trigger workflow in onboarding system with reference ID.",
+        "previous_steps": ["01 Capture client request"],
+        "next_steps": ["03 Parallelize onboarding streams"]
+      },
+      {
+        "name": "03 Parallelize onboarding streams",
+        "type": "Parallel gateway",
+        "lane": "Onboarding Workflow Engine",
+        "fte": null,
+        "total_score": null,
+        "avg_processing_time": "None",
+        "annual_frequency": 260,
+        "description": "Split into parallel workstreams: KYC/AML, Credit Risk, Tax, Legal Documentation.",
+        "previous_steps": ["02 Initiate onboarding workflow"],
+        "next_steps": ["04 Perform KYC & AML checks", "05 Conduct credit risk assessment", "06 Determine tax classification", "07 Draft & review legal docs"]
+      },
+      {
+        "name": "04 Perform KYC & AML checks",
+        "type": "User task",
+        "lane": "KYC / Compliance Team",
+        "fte": 0.002,
+        "total_score": 8,
+        "avg_processing_time": "60m",
+        "annual_frequency": 260,
+        "description": "Collect ultimate beneficial ownership (UBO), screen against PEP/sanctions lists, run adverse media checks.",
+        "previous_steps": ["03 Parallelize onboarding streams"],
+        "next_steps": ["08 KYC outcome?"]
+      },
+      {
+        "name": "05 Conduct credit risk assessment",
+        "type": "User task",
+        "lane": "Credit Risk Team",
+        "fte": 0.0015,
+        "total_score": 7,
+        "avg_processing_time": "45m",
+        "annual_frequency": 260,
+        "description": "Evaluate financial statements, assign internal rating, define credit limits.",
+        "previous_steps": ["03 Parallelize onboarding streams"],
+        "next_steps": ["09 Credit outcome?"]
+      },
+      {
+        "name": "06 Determine tax classification",
+        "type": "User task",
+        "lane": "Tax Operations",
+        "fte": 0.0010,
+        "total_score": 5,
+        "avg_processing_time": "30m",
+        "annual_frequency": 260,
+        "description": "Apply FATCA/CRS classification, request W-8/W-9 or local equivalents, store documentation.",
+        "previous_steps": ["03 Parallelize onboarding streams"],
+        "next_steps": ["10 Tax outcome?"]
+      },
+      {
+        "name": "07 Draft & review legal docs",
+        "type": "User task",
+        "lane": "Legal Department",
+        "fte": 0.0013,
+        "total_score": 6,
+        "avg_processing_time": "40m",
+        "annual_frequency": 260,
+        "description": "Prepare onboarding agreements, product T&Cs, disclosure letters. Legal review for enforceability.",
+        "previous_steps": ["03 Parallelize onboarding streams"],
+        "next_steps": ["11 Legal outcome?"]
+      },
+      {
+        "name": "08 KYC outcome?",
+        "type": "Exclusive gateway",
+        "lane": "KYC / Compliance Team",
+        "fte": null,
+        "total_score": null,
+        "avg_processing_time": "None",
+        "annual_frequency": 260,
+        "description": "Approved if no red flags; escalate if adverse findings.",
+        "previous_steps": ["04 Perform KYC & AML checks"],
+        "next_steps": ["12 Remediation required (KYC)", "13 KYC Approved"]
+      },
+      {
+        "name": "09 Credit outcome?",
+        "type": "Exclusive gateway",
+        "lane": "Credit Risk Team",
+        "fte": null,
+        "total_score": null,
+        "avg_processing_time": "None",
+        "annual_frequency": 260,
+        "description": "Credit approved or declined.",
+        "previous_steps": ["05 Conduct credit risk assessment"],
+        "next_steps": ["14 Escalate to senior risk committee", "15 Credit Approved"]
+      },
+      {
+        "name": "10 Tax outcome?",
+        "type": "Exclusive gateway",
+        "lane": "Tax Operations",
+        "fte": null,
+        "total_score": null,
+        "avg_processing_time": "None",
+        "annual_frequency": 260,
+        "description": "Tax classification successful or pending clarification.",
+        "previous_steps": ["06 Determine tax classification"],
+        "next_steps": ["16 Request missing tax forms", "17 Tax Classification Approved"]
+      },
+      {
+        "name": "11 Legal outcome?",
+        "type": "Exclusive gateway",
+        "lane": "Legal Department",
+        "fte": null,
+        "total_score": null,
+        "avg_processing_time": "None",
+        "annual_frequency": 260,
+        "description": "Legal docs approved or requiring redrafting.",
+        "previous_steps": ["07 Draft & review legal docs"],
+        "next_steps": ["18 Redraft documents", "19 Legal Approved"]
+      },
+      {
+        "name": "12 Remediation required (KYC)",
+        "type": "Manual task",
+        "lane": "KYC / Compliance Team",
+        "fte": 0.0010,
+        "total_score": 5,
+        "avg_processing_time": "20m",
+        "annual_frequency": 260,
+        "description": "Request additional documents (ID, proof of address, corporate registry).",
+        "previous_steps": ["08 KYC outcome?"],
+        "next_steps": ["13 KYC Approved"]
+      },
+      {
+        "name": "14 Escalate to senior risk committee",
+        "type": "Manual task",
+        "lane": "Credit Risk Committee",
+        "fte": 0.0015,
+        "total_score": 7,
+        "avg_processing_time": "30m",
+        "annual_frequency": 52,
+        "description": "Committee review required for borderline credit cases.",
+        "previous_steps": ["09 Credit outcome?"],
+        "next_steps": ["15 Credit Approved"]
+      },
+      {
+        "name": "16 Request missing tax forms",
+        "type": "Manual task",
+        "lane": "Tax Operations",
+        "fte": 0.0007,
+        "total_score": 4,
+        "avg_processing_time": "15m",
+        "annual_frequency": 260,
+        "description": "Contact client for missing W-8/W-9 or equivalent forms.",
+        "previous_steps": ["10 Tax outcome?"],
+        "next_steps": ["17 Tax Classification Approved"]
+      },
+      {
+        "name": "18 Redraft documents",
+        "type": "Manual task",
+        "lane": "Legal Department",
+        "fte": 0.0010,
+        "total_score": 5,
+        "avg_processing_time": "25m",
+        "annual_frequency": 260,
+        "description": "Redraft contracts or disclosures based on feedback.",
+        "previous_steps": ["11 Legal outcome?"],
+        "next_steps": ["19 Legal Approved"]
+      },
+      {
+        "name": "13 KYC Approved",
+        "type": "End event",
+        "lane": "KYC / Compliance Team",
+        "previous_steps": ["08 KYC outcome?", "12 Remediation required (KYC)"],
+        "next_steps": ["20 Join all streams"]
+      },
+      {
+        "name": "15 Credit Approved",
+        "type": "End event",
+        "lane": "Credit Risk Team",
+        "previous_steps": ["09 Credit outcome?", "14 Escalate to senior risk committee"],
+        "next_steps": ["20 Join all streams"]
+      },
+      {
+        "name": "17 Tax Classification Approved",
+        "type": "End event",
+        "lane": "Tax Operations",
+        "previous_steps": ["10 Tax outcome?", "16 Request missing tax forms"],
+        "next_steps": ["20 Join all streams"]
+      },
+      {
+        "name": "19 Legal Approved",
+        "type": "End event",
+        "lane": "Legal Department",
+        "previous_steps": ["11 Legal outcome?", "18 Redraft documents"],
+        "next_steps": ["20 Join all streams"]
+      },
+      {
+        "name": "20 Join all streams",
+        "type": "Parallel gateway",
+        "lane": "Onboarding Workflow Engine",
+        "fte": null,
+        "total_score": null,
+        "avg_processing_time": "None",
+        "annual_frequency": 260,
+        "description": "Wait until all four onboarding streams (KYC, Credit, Tax, Legal) are approved.",
+        "previous_steps": ["13 KYC Approved", "15 Credit Approved", "17 Tax Classification Approved", "19 Legal Approved"],
+        "next_steps": ["21 Open client account"]
+      },
+      {
+        "name": "21 Open client account",
+        "type": "User task",
+        "lane": "Operations",
+        "fte": 0.0009,
+        "total_score": 6,
+        "avg_processing_time": "20m",
+        "annual_frequency": 260,
+        "description": "Create client account in core banking, assign client ID, product entitlements.",
+        "previous_steps": ["20 Join all streams"],
+        "next_steps": ["22 Send onboarding confirmation"]
+      },
+      {
+        "name": "22 Send onboarding confirmation",
+        "type": "User task",
+        "lane": "Sales / Relationship Manager",
+        "fte": 0.0004,
+        "total_score": 2,
+        "avg_processing_time": "10m",
+        "annual_frequency": 260,
+        "description": "Notify client of account opening and provide welcome package.",
+        "previous_steps": ["21 Open client account"],
+        "next_steps": ["End of the control"]
+      },
+      {
+        "name": "End of the control",
+        "type": "End of the control",
+        "lane": "Onboarding Workflow Engine",
+        "fte": null,
+        "total_score": null,
+        "avg_processing_time": "None",
+        "annual_frequency": 260,
+        "description": "Client onboarding process complete.",
+        "previous_steps": ["22 Send onboarding confirmation"],
+        "next_steps": []
+      }
+    ]
+  }
+  
