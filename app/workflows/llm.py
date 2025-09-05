@@ -1,10 +1,15 @@
 from __future__ import annotations
+
 from langchain.chat_models import init_chat_model
 
+from app.core.config import settings
+from app.workflows.models import LLM_MODELS
 
 # Using LangChain's new init_chat_model wrapper keeps vendor-agnostic imports
 # while enabling token streaming with LangGraph.
 
 def chat_model():
-# Configure via env vars, e.g. OPENAI_API_KEY; replace with azure, groq, etc.
-    return init_chat_model(model="openai:gpt-4o-mini")
+    """Instantiate the chat model configured for the current environment."""
+    model_name = LLM_MODELS.get(settings.llm_model, LLM_MODELS["openai"])
+    return init_chat_model(model=model_name)
+
