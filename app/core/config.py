@@ -25,7 +25,8 @@ class Settings(BaseSettings):
     use_sqlite_checkpointer: bool = True
     sqlite_checkpointer_path: str = "./.state.sqlite"
 
-    # OpenAI or other model config (example)
+    # LLM configuration
+    llm_model: str = "openai"  # key for app.workflows.models.LLM_MODELS
     openai_api_key: str | None = None
 
     # Allow overriding settings via a local .env file or environment variables
