@@ -6,9 +6,8 @@ import asyncio
 import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import sessionmaker
-
 from app.db.base import Base
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.repositories.process import ProcessRepository
 
 
@@ -36,8 +35,20 @@ async def session(engine):
 async def test_users(session):
     """Create test users."""
     # Create test users
-    user1 = User(gpn="user1", email="user1@test.com", display_name="Test User 1")
-    user2 = User(gpn="user2", email="user2@test.com", display_name="Test User 2")
+    user1 = User(
+        gpn="user1",
+        email="user1@test.com",
+        display_name="Test User 1",
+        azure_oid="00000000-0000-0000-0000-000000000001",
+        role=UserRole.PROCESS_CREATOR,
+    )
+    user2 = User(
+        gpn="user2",
+        email="user2@test.com",
+        display_name="Test User 2",
+        azure_oid="00000000-0000-0000-0000-000000000002",
+        role=UserRole.VIEWER,
+    )
 
     session.add(user1)
     session.add(user2)
@@ -381,10 +392,18 @@ if __name__ == "__main__":
         async with async_session() as session:
             # Create test users first
             user1 = User(
-                gpn="user1", email="user1@test.com", display_name="Test User 1"
+                gpn="user1",
+                email="user1@test.com",
+                display_name="Test User 1",
+                azure_oid="00000000-0000-0000-0000-000000000001",
+                role=UserRole.PROCESS_CREATOR,
             )
             user2 = User(
-                gpn="user2", email="user2@test.com", display_name="Test User 2"
+                gpn="user2",
+                email="user2@test.com",
+                display_name="Test User 2",
+                azure_oid="00000000-0000-0000-0000-000000000002",
+                role=UserRole.VIEWER,
             )
 
             session.add(user1)

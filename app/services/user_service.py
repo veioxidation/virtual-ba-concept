@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.repositories.user import UserRepository
 
 
@@ -26,15 +26,20 @@ class UserService:
     async def create(
         self,
         gpn: str,
+        *,
         email: str | None = None,
         display_name: str | None = None,
         is_active: bool = True,
+        role: UserRole = UserRole.VIEWER,
+        azure_oid: str | None = None,
     ) -> User:
         obj = await self.repo.create(
             gpn=gpn,
-            email=email,
+            email=email.lower() if email else None,
             display_name=display_name,
             is_active=is_active,
+            role=role,
+            azure_oid=azure_oid,
         )
         await self.session.commit()
         return obj
@@ -47,13 +52,17 @@ class UserService:
         email: str | None = None,
         display_name: str | None = None,
         is_active: bool | None = None,
+        role: UserRole | None = None,
+        azure_oid: str | None = None,
     ) -> User | None:
         obj = await self.repo.update(
             user_id,
             gpn=gpn,
-            email=email,
+            email=email.lower() if email else None,
             display_name=display_name,
             is_active=is_active,
+            role=role,
+            azure_oid=azure_oid,
         )
         await self.session.commit()
         return obj
@@ -90,6 +99,9 @@ class UserService:
         gpn: str,
         email: str | None = None,
         display_name: str | None = None,
+        is_active: bool = True,
+        role: UserRole = UserRole.VIEWER,
+        azure_oid: str | None = None,
     ) -> User:
         """Get existing user by GPN or create a new one."""
         user = await self.get_by_gpn(gpn)
@@ -98,6 +110,9 @@ class UserService:
 
         return await self.create(
             gpn=gpn,
-            email=email,
+            email=email.lower() if email else None,
             display_name=display_name,
+            is_active=is_active,
+            role=role,
+            azure_oid=azure_oid,
         )

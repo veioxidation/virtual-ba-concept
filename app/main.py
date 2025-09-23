@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.v1 import auth as auth_router
 from app.api.v1 import processes as processes_router
 from app.api.v1 import projects as projects_router
 from app.api.v1 import users as users_router
@@ -57,7 +58,7 @@ async def root():
 # CORS for your Vite React app
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,
+    allow_origins=settings.allowed_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -65,6 +66,7 @@ app.add_middleware(
 
 
 # Routers
+app.include_router(auth_router.router, prefix=settings.api_v1_prefix)
 app.include_router(projects_router.router, prefix=settings.api_v1_prefix)
 # app.include_router(workflows_router.router, prefix=settings.api_v1_prefix)
 app.include_router(processes_router.router, prefix=settings.api_v1_prefix)
