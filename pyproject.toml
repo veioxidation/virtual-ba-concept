@@ -12,6 +12,7 @@ dependencies = [
   "pydantic",
   "pytest>=8.4.2",
   "pytest-asyncio",
+  "pyjwt[crypto]>=2.8",
 ]
 
 [tool.uv]
