@@ -9,6 +9,7 @@ from app.api.v1 import auth as auth_router
 from app.api.v1 import processes as processes_router
 from app.api.v1 import projects as projects_router
 from app.api.v1 import users as users_router
+from app.api.v1 import workflows as workflows_router
 from app.core.config import settings
 from app.core.log import setup_logging
 from app.db.base import Base
@@ -68,7 +69,7 @@ app.add_middleware(
 # Routers
 app.include_router(auth_router.router, prefix=settings.api_v1_prefix)
 app.include_router(projects_router.router, prefix=settings.api_v1_prefix)
-# app.include_router(workflows_router.router, prefix=settings.api_v1_prefix)
+app.include_router(workflows_router.router, prefix=settings.api_v1_prefix)
 app.include_router(processes_router.router, prefix=settings.api_v1_prefix)
 app.include_router(users_router.router, prefix=settings.api_v1_prefix)
 
