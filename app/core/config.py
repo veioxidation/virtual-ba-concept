@@ -47,7 +47,7 @@ class Settings(BaseSettings):
     sqlite_checkpointer_path: str = "./.state.sqlite"
 
     # OpenAI or other model config (example)
-    openai_api_key: str | None = None
+    openai_api_key: str | None = None  # loaded from OPENAI_API_KEY
 
     # Allow overriding settings via a local .env file or environment variables
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
